@@ -7,15 +7,15 @@ PostgreSQL might be considered if you need to support many concurrent users. In 
 ```yaml
 services:
   mealie:
-    image: ghcr.io/mealie-recipes/mealie:v3.0.2 # (3)
+    image: ghcr.io/mealie-recipes/mealie:v3.0.2 # (1)
     container_name: mealie
     restart: always
     ports:
-        - "9925:9000" # (1)
+        - "9925:9000" # (2)
     deploy:
       resources:
         limits:
-          memory: 1000M # (2)
+          memory: 1000M # (3)
     volumes:
       - mealie-data:/app/data/
     environment:
@@ -38,14 +38,15 @@ services:
 
   postgres:
     container_name: postgres
-    image: postgres:15
+    image: postgres:17 # (4)
     restart: always
     volumes:
       - mealie-pgdata:/var/lib/postgresql/data
     environment:
-      POSTGRES_PASSWORD: mealie
-      POSTGRES_USER: mealie
       PGUSER: mealie
+      POSTGRES_USER: mealie
+      POSTGRES_PASSWORD: mealie
+      POSTGRES_DB: mealie
     healthcheck:
       test: ["CMD", "pg_isready"]
       interval: 30s
@@ -59,6 +60,7 @@ volumes:
 
 <!-- Updating This? Be Sure to also update the SQLite Annotations -->
 
-1.  To access the mealie interface you only need to expose port 9000 on the mealie container. Here we expose port 9925 on the host, but feel free to change this to any port you like.
-2.  Setting an explicit memory limit is recommended. Python can pre-allocate larger amounts of memory than is necessary if you have a machine with a lot of RAM. This can cause the container to idle at a high memory usage. Setting a memory limit will improve idle performance.
-3.  You should double check this value isn't out of date when setting up for the first time; check the README and use the value from the "latest release" badge at the top - the format should be `vX.Y.Z`. Whilst a 'latest' tag is available, the Mealie team advises specifying a specific version tag and consciously updating to newer versions when you have time to read the release notes and ensure you follow any manual actions required (which should be rare).
+1.  You should double check this value isn't out of date when setting up for the first time; check the README and use the value from the "latest release" badge at the top - the format should be `vX.Y.Z`. Whilst a 'latest' tag is available, the Mealie team advises specifying a specific version tag and consciously updating to newer versions when you have time to read the release notes and ensure you follow any manual actions required (which should be rare).
+2.  To access the mealie interface you only need to expose port 9000 on the mealie container. Here we expose port 9925 on the host, but feel free to change this to any port you like.
+3.  Setting an explicit memory limit is recommended. Python can pre-allocate larger amounts of memory than is necessary if you have a machine with a lot of RAM. This can cause the container to idle at a high memory usage. Setting a memory limit will improve idle performance.
+4. Mealie has been tested on every version of PostgreSQL since version 15, so most users should always use the newest version of PostgreSQL when creating a new database. If you already have a database, migrating to the newest version is typically more involved than just updating the version here. Reference the PostgreSQL documentation for more information on upgrading if this is something you want to do.
